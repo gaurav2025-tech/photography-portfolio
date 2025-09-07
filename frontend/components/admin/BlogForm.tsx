@@ -24,6 +24,9 @@ export default function BlogForm({ item, onClose }: BlogFormProps) {
     content: '',
     featured_image_url: '',
     published: false,
+    meta_title: '',
+    meta_description: '',
+    meta_keywords: '',
   });
   const [uploadMethod, setUploadMethod] = useState<'upload' | 'url'>('upload');
 
@@ -40,6 +43,9 @@ export default function BlogForm({ item, onClose }: BlogFormProps) {
         content: item.content,
         featured_image_url: item.featured_image_url || '',
         published: item.published,
+        meta_title: item.meta_title || '',
+        meta_description: item.meta_description || '',
+        meta_keywords: item.meta_keywords || '',
       });
     }
   }, [item]);
@@ -95,7 +101,8 @@ export default function BlogForm({ item, onClose }: BlogFormProps) {
     setFormData(prev => ({
       ...prev,
       title,
-      slug: !item ? generateSlug(title) : prev.slug, // Only auto-generate for new posts
+      slug: !item ? generateSlug(title) : prev.slug,
+      meta_title: !item || !prev.meta_title ? title : prev.meta_title,
     }));
   };
 
@@ -109,6 +116,9 @@ export default function BlogForm({ item, onClose }: BlogFormProps) {
       content: formData.content,
       featured_image_url: formData.featured_image_url || undefined,
       published: formData.published,
+      meta_title: formData.meta_title || undefined,
+      meta_description: formData.meta_description || undefined,
+      meta_keywords: formData.meta_keywords || undefined,
     };
 
     if (item) {
@@ -124,7 +134,7 @@ export default function BlogForm({ item, onClose }: BlogFormProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-card rounded-lg border border-border max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-lg border border-border max-w-5xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-border">
           <h3 className="text-xl font-semibold">
             {item ? 'Edit Blog Post' : 'Add New Blog Post'}
@@ -134,86 +144,169 @@ export default function BlogForm({ item, onClose }: BlogFormProps) {
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div>
-            <label className="block text-sm font-medium mb-2">Title *</label>
-            <Input
-              value={formData.title}
-              onChange={(e) => handleTitleChange(e.target.value)}
-              required
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="p-6">
+          <Tabs defaultValue="content" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="content">Content</TabsTrigger>
+              <TabsTrigger value="seo">SEO Settings</TabsTrigger>
+            </TabsList>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Slug *</label>
-            <Input
-              value={formData.slug}
-              onChange={(e) => handleInputChange('slug', e.target.value)}
-              required
-              placeholder="blog-post-url-slug"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Excerpt</label>
-            <Textarea
-              value={formData.excerpt}
-              onChange={(e) => handleInputChange('excerpt', e.target.value)}
-              rows={3}
-              placeholder="Brief description of the blog post"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-4">Featured Image</label>
-            <Tabs value={uploadMethod} onValueChange={(value) => setUploadMethod(value as 'upload' | 'url')}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="upload">Upload Image</TabsTrigger>
-                <TabsTrigger value="url">Image URL</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="upload" className="mt-4">
-                <ImageUpload
-                  value={formData.featured_image_url}
-                  onChange={(url) => handleInputChange('featured_image_url', url)}
-                  folder="blog/featured"
-                />
-              </TabsContent>
-              
-              <TabsContent value="url" className="mt-4">
+            <TabsContent value="content" className="space-y-6 mt-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">Title *</label>
                 <Input
-                  type="url"
-                  value={formData.featured_image_url}
-                  onChange={(e) => handleInputChange('featured_image_url', e.target.value)}
-                  placeholder="https://example.com/image.jpg"
+                  value={formData.title}
+                  onChange={(e) => handleTitleChange(e.target.value)}
+                  required
                 />
-              </TabsContent>
-            </Tabs>
-          </div>
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Content *</label>
-            <Textarea
-              value={formData.content}
-              onChange={(e) => handleInputChange('content', e.target.value)}
-              rows={12}
-              required
-              placeholder="Write your blog post content here... You can use HTML tags for formatting."
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Slug *</label>
+                <Input
+                  value={formData.slug}
+                  onChange={(e) => handleInputChange('slug', e.target.value)}
+                  required
+                  placeholder="blog-post-url-slug"
+                />
+              </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="published"
-              checked={formData.published}
-              onCheckedChange={(checked) => handleInputChange('published', checked)}
-            />
-            <label htmlFor="published" className="text-sm font-medium">
-              Publish immediately
-            </label>
-          </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Excerpt</label>
+                <Textarea
+                  value={formData.excerpt}
+                  onChange={(e) => handleInputChange('excerpt', e.target.value)}
+                  rows={3}
+                  placeholder="Brief description of the blog post"
+                />
+              </div>
 
-          <div className="flex gap-3 pt-4">
+              <div>
+                <label className="block text-sm font-medium mb-4">Featured Image</label>
+                <Tabs value={uploadMethod} onValueChange={(value) => setUploadMethod(value as 'upload' | 'url')}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="upload">Upload Image</TabsTrigger>
+                    <TabsTrigger value="url">Image URL</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="upload" className="mt-4">
+                    <ImageUpload
+                      value={formData.featured_image_url}
+                      onChange={(url) => handleInputChange('featured_image_url', url)}
+                      folder="blog/featured"
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="url" className="mt-4">
+                    <Input
+                      type="url"
+                      value={formData.featured_image_url}
+                      onChange={(e) => handleInputChange('featured_image_url', e.target.value)}
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </TabsContent>
+                </Tabs>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Content *</label>
+                <Textarea
+                  value={formData.content}
+                  onChange={(e) => handleInputChange('content', e.target.value)}
+                  rows={12}
+                  required
+                  placeholder="Write your blog post content here... You can use HTML tags for formatting."
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="published"
+                  checked={formData.published}
+                  onCheckedChange={(checked) => handleInputChange('published', checked)}
+                />
+                <label htmlFor="published" className="text-sm font-medium">
+                  Publish immediately
+                </label>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="seo" className="space-y-6 mt-6">
+              <div className="bg-muted/50 rounded-lg p-4 mb-6">
+                <h4 className="font-medium text-foreground mb-2">SEO Settings</h4>
+                <p className="text-sm text-muted-foreground">
+                  Optimize your blog post for search engines by setting custom meta tags.
+                  If left empty, the system will use defaults based on your title and excerpt.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Meta Title
+                  <span className="text-xs text-muted-foreground ml-2">(max 150 characters)</span>
+                </label>
+                <Input
+                  value={formData.meta_title}
+                  onChange={(e) => handleInputChange('meta_title', e.target.value)}
+                  maxLength={150}
+                  placeholder="SEO-optimized title for search engines"
+                />
+                <div className="text-xs text-muted-foreground mt-1">
+                  {formData.meta_title.length}/150 characters
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Meta Description
+                  <span className="text-xs text-muted-foreground ml-2">(max 300 characters)</span>
+                </label>
+                <Textarea
+                  value={formData.meta_description}
+                  onChange={(e) => handleInputChange('meta_description', e.target.value)}
+                  rows={3}
+                  maxLength={300}
+                  placeholder="Brief, compelling description that will appear in search results"
+                />
+                <div className="text-xs text-muted-foreground mt-1">
+                  {formData.meta_description.length}/300 characters
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Meta Keywords
+                  <span className="text-xs text-muted-foreground ml-2">(comma-separated)</span>
+                </label>
+                <Input
+                  value={formData.meta_keywords}
+                  onChange={(e) => handleInputChange('meta_keywords', e.target.value)}
+                  placeholder="photography, wedding, portrait, videography"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Enter relevant keywords separated by commas. Keep it focused and relevant.
+                </p>
+              </div>
+
+              {/* SEO Preview */}
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h5 className="font-medium text-foreground mb-3">Search Engine Preview</h5>
+                <div className="space-y-2">
+                  <div className="text-blue-600 text-lg font-medium">
+                    {formData.meta_title || formData.title || 'Your Blog Post Title'}
+                  </div>
+                  <div className="text-green-700 text-sm">
+                    https://yoursite.com/blog/{formData.slug || 'your-post-slug'}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {formData.meta_description || formData.excerpt || 'Your blog post description will appear here...'}
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex gap-3 pt-6 border-t border-border mt-6">
             <Button
               type="submit"
               disabled={createMutation.isPending || updateMutation.isPending}

@@ -9,6 +9,9 @@ export interface UpdateBlogPostRequest {
   content: string;
   featured_image_url?: string;
   published: boolean;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
 }
 
 export interface UpdateBlogPostResponse {
@@ -25,7 +28,9 @@ export const updateBlogPost = api<UpdateBlogPostRequest, UpdateBlogPostResponse>
       UPDATE blog_posts 
       SET title = ${req.title}, slug = ${req.slug}, excerpt = ${req.excerpt}, 
           content = ${req.content}, featured_image_url = ${req.featured_image_url}, 
-          published = ${req.published}, published_at = ${publishedAt}, updated_at = CURRENT_TIMESTAMP
+          published = ${req.published}, published_at = ${publishedAt}, 
+          meta_title = ${req.meta_title}, meta_description = ${req.meta_description},
+          meta_keywords = ${req.meta_keywords}, updated_at = CURRENT_TIMESTAMP
       WHERE id = ${req.id}
     `;
     

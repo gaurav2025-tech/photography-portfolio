@@ -11,6 +11,9 @@ export interface BlogPost {
   featured_image_url: string | null;
   published: boolean;
   published_at: Date | null;
+  meta_title: string | null;
+  meta_description: string | null;
+  meta_keywords: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -30,7 +33,8 @@ export const listBlog = api<ListBlogParams, ListBlogResponse>(
   async (params) => {
     let query = `
       SELECT id, title, slug, excerpt, content, featured_image_url, 
-             published, published_at, created_at, updated_at
+             published, published_at, meta_title, meta_description, meta_keywords,
+             created_at, updated_at
       FROM blog_posts
       WHERE 1=1
     `;

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Calendar, ArrowRight } from 'lucide-react';
 import backend from '~backend/client';
+import SEOHead from '../components/SEOHead';
 import type { BlogPost } from '~backend/portfolio/list_blog';
 
 export default function BlogPage() {
@@ -31,6 +32,13 @@ export default function BlogPage() {
 
   return (
     <div className="min-h-screen pt-20">
+      <SEOHead
+        title="Blog | Dreams Photography - Photography Tips & Insights"
+        description="Explore our photography blog for professional tips, behind-the-scenes stories, and insights from Dreams Photography. Learn about wedding photography, portrait sessions, and more."
+        keywords="photography blog, photography tips, wedding photography tips, portrait photography, Dreams Photography blog, photography tutorials"
+        url={`${window.location.origin}/blog`}
+      />
+      
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-br from-primary/10 via-background to-secondary/10">
         <div className="container mx-auto px-4">

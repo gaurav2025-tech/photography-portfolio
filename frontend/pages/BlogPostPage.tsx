@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import backend from '~backend/client';
+import SEOHead from '../components/SEOHead';
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -47,8 +48,23 @@ export default function BlogPostPage() {
     });
   };
 
+  // Generate SEO data
+  const seoTitle = post.meta_title || `${post.title} | Dreams Photography Blog`;
+  const seoDescription = post.meta_description || post.excerpt || `Read ${post.title} on Dreams Photography blog. Professional photography and videography insights, tips, and stories.`;
+  const seoKeywords = post.meta_keywords || 'photography blog, photography tips, Dreams Photography, professional photography, videography';
+  const currentUrl = `${window.location.origin}/blog/${post.slug}`;
+
   return (
     <div className="min-h-screen pt-20">
+      <SEOHead
+        title={seoTitle}
+        description={seoDescription}
+        keywords={seoKeywords}
+        image={post.featured_image_url || '/og-image.jpg'}
+        url={currentUrl}
+        type="article"
+      />
+      
       <article className="py-20">
         <div className="container mx-auto px-4 max-w-4xl">
           <Link
