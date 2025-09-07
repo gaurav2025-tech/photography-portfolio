@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
+import ImageUpload from './ImageUpload';
 import type { BlogPost } from '~backend/portfolio/list_blog';
 
 interface BlogFormProps {
@@ -23,6 +25,7 @@ export default function BlogForm({ item, onClose }: BlogFormProps) {
     featured_image_url: '',
     published: false,
   });
+  const [uploadMethod, setUploadMethod] = useState<'upload' | 'url'>('upload');
 
   const backend = useBackend();
   const { toast } = useToast();
@@ -131,7 +134,7 @@ export default function BlogForm({ item, onClose }: BlogFormProps) {
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div>
             <label className="block text-sm font-medium mb-2">Title *</label>
             <Input
@@ -162,12 +165,30 @@ export default function BlogForm({ item, onClose }: BlogFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Featured Image URL</label>
-            <Input
-              type="url"
-              value={formData.featured_image_url}
-              onChange={(e) => handleInputChange('featured_image_url', e.target.value)}
-            />
+            <label className="block text-sm font-medium mb-4">Featured Image</label>
+            <Tabs value={uploadMethod} onValueChange={(value) => setUploadMethod(value as 'upload' | 'url')}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="upload">Upload Image</TabsTrigger>
+                <TabsTrigger value="url">Image URL</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="upload" className="mt-4">
+                <ImageUpload
+                  value={formData.featured_image_url}
+                  onChange={(url) => handleInputChange('featured_image_url', url)}
+                  folder="blog/featured"
+                />
+              </TabsContent>
+              
+              <TabsContent value="url" className="mt-4">
+                <Input
+                  type="url"
+                  value={formData.featured_image_url}
+                  onChange={(e) => handleInputChange('featured_image_url', e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                />
+              </TabsContent>
+            </Tabs>
           </div>
 
           <div>

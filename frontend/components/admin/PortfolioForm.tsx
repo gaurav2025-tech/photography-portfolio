@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
+import ImageUpload from './ImageUpload';
 import type { PortfolioItem } from '~backend/portfolio/list_portfolio';
 import type { Category } from '~backend/portfolio/list_categories';
 
@@ -27,6 +29,7 @@ export default function PortfolioForm({ item, categories, onClose }: PortfolioFo
     featured: false,
     sort_order: 0,
   });
+  const [uploadMethod, setUploadMethod] = useState<'upload' | 'url'>('upload');
 
   const backend = useBackend();
   const { toast } = useToast();
@@ -109,7 +112,7 @@ export default function PortfolioForm({ item, categories, onClose }: PortfolioFo
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-card rounded-lg border border-border max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-lg border border-border max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-border">
           <h3 className="text-xl font-semibold">
             {item ? 'Edit Portfolio Item' : 'Add New Portfolio Item'}
@@ -119,7 +122,7 @@ export default function PortfolioForm({ item, categories, onClose }: PortfolioFo
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div>
             <label className="block text-sm font-medium mb-2">Title *</label>
             <Input
@@ -139,22 +142,58 @@ export default function PortfolioForm({ item, categories, onClose }: PortfolioFo
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Image URL *</label>
-            <Input
-              type="url"
-              value={formData.image_url}
-              onChange={(e) => handleInputChange('image_url', e.target.value)}
-              required
-            />
+            <label className="block text-sm font-medium mb-4">Main Image *</label>
+            <Tabs value={uploadMethod} onValueChange={(value) => setUploadMethod(value as 'upload' | 'url')}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="upload">Upload Image</TabsTrigger>
+                <TabsTrigger value="url">Image URL</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="upload" className="mt-4">
+                <ImageUpload
+                  value={formData.image_url}
+                  onChange={(url) => handleInputChange('image_url', url)}
+                  folder="portfolio/main"
+                />
+              </TabsContent>
+              
+              <TabsContent value="url" className="mt-4">
+                <Input
+                  type="url"
+                  value={formData.image_url}
+                  onChange={(e) => handleInputChange('image_url', e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  required={uploadMethod === 'url'}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Thumbnail URL</label>
-            <Input
-              type="url"
-              value={formData.thumbnail_url}
-              onChange={(e) => handleInputChange('thumbnail_url', e.target.value)}
-            />
+            <label className="block text-sm font-medium mb-4">Thumbnail Image (Optional)</label>
+            <Tabs defaultValue="upload">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="upload">Upload Thumbnail</TabsTrigger>
+                <TabsTrigger value="url">Thumbnail URL</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="upload" className="mt-4">
+                <ImageUpload
+                  value={formData.thumbnail_url}
+                  onChange={(url) => handleInputChange('thumbnail_url', url)}
+                  folder="portfolio/thumbnails"
+                />
+              </TabsContent>
+              
+              <TabsContent value="url" className="mt-4">
+                <Input
+                  type="url"
+                  value={formData.thumbnail_url}
+                  onChange={(e) => handleInputChange('thumbnail_url', e.target.value)}
+                  placeholder="https://example.com/thumbnail.jpg"
+                />
+              </TabsContent>
+            </Tabs>
           </div>
 
           <div>
