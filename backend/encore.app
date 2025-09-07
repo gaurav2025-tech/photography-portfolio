@@ -1,0 +1,1 @@
+{"id": "photography-portfolio-ocyi", "lang": "typescript"}
