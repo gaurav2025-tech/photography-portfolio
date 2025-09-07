@@ -3,16 +3,31 @@ import { useQuery } from '@tanstack/react-query';
 import { Mail, Phone, Calendar, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
 import { useBackend } from '../../hooks/useBackend';
 import { Button } from '@/components/ui/button';
+import ContactSubmissionSkeleton from '../skeleton/ContactSubmissionSkeleton';
+import ErrorDisplay from '../ErrorDisplay';
+import ErrorBoundary from '../ErrorBoundary';
+import { useRetry } from '../../hooks/useRetry';
 import type { ContactSubmission } from '~backend/portfolio/list_contact_submissions';
 
 export default function ContactSubmissions() {
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const backend = useBackend();
+  const { retry, isRetrying } = useRetry();
 
-  const { data: contactData, isLoading } = useQuery({
+  const { data: contactData, isLoading, error, refetch } = useQuery({
     queryKey: ['contact-submissions'],
     queryFn: () => backend.portfolio.listContactSubmissions({ limit: 100 }),
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
+
+  const handleRetry = async () => {
+    try {
+      await retry(() => refetch().then(result => result.data));
+    } catch (err) {
+      console.error('Retry failed:', err);
+    }
+  };
 
   const toggleExpanded = (id: number) => {
     setExpandedItems(prev => {
@@ -28,37 +43,67 @@ export default function ContactSubmissions() {
 
   const submissions = contactData?.submissions || [];
 
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold text-foreground">Contact Submissions</h2>
+        </div>
+        <ErrorDisplay
+          error={error as Error}
+          retry={handleRetry}
+          title="Failed to load contact submissions"
+          description={isRetrying ? "Retrying..." : "Unable to load contact submissions. Please try again."}
+        />
+      </div>
+    );
+  }
+
   if (isLoading) {
-    return <div className="text-center py-8">Loading contact submissions...</div>;
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold text-foreground">Contact Submissions</h2>
+          <div className="w-20 h-6 bg-muted rounded animate-pulse" />
+        </div>
+        <div className="space-y-4">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <ContactSubmissionSkeleton key={index} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold text-foreground">Contact Submissions</h2>
-        <div className="text-sm text-muted-foreground">
-          Total: {contactData?.total || 0} submissions
+    <ErrorBoundary>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold text-foreground">Contact Submissions</h2>
+          <div className="text-sm text-muted-foreground">
+            Total: {contactData?.total || 0} submissions
+          </div>
         </div>
-      </div>
 
-      <div className="space-y-4">
-        {submissions.map((submission) => (
-          <ContactCard
-            key={submission.id}
-            submission={submission}
-            isExpanded={expandedItems.has(submission.id)}
-            onToggle={() => toggleExpanded(submission.id)}
-          />
-        ))}
-      </div>
-
-      {submissions.length === 0 && (
-        <div className="text-center py-12">
-          <Mail className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">No contact submissions yet.</p>
+        <div className="space-y-4">
+          {submissions.map((submission) => (
+            <ContactCard
+              key={submission.id}
+              submission={submission}
+              isExpanded={expandedItems.has(submission.id)}
+              onToggle={() => toggleExpanded(submission.id)}
+            />
+          ))}
         </div>
-      )}
-    </div>
+
+        {submissions.length === 0 && (
+          <div className="text-center py-12">
+            <Mail className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No contact submissions yet.</p>
+          </div>
+        )}
+      </div>
+    </ErrorBoundary>
   );
 }
 
